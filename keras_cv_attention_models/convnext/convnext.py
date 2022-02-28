@@ -31,12 +31,16 @@ def block(inputs, output_channel, layer_scale_init_value=1e-6, drop_rate=0, acti
     nn = depthwise_conv2d_no_bias(inputs, kernel_size=7, padding="SAME", use_bias=True, name=name)
     nn = layer_norm(nn, epsilon=LAYER_NORM_EPSILON, name=name)
     H1 = keras.layers.Dense(4 * output_channel, name=name + "up_dense")(nn)
-    H2 = activation_by_name(H1, activation, name=name)
-    H2 = keras.layers.Dense(output_channel, name=name + "down_dense")(keras.layers.Add()([nn, H1]))
+    H1 = activation_by_name(H1, activation, name=name)
+    H2 = keras.layers.Add()([nn, H1])
+    H2 = layer_norm(H2, epsilon=LAYER_NORM_EPSILON, name=name)
+    H2 = keras.layers.Dense(output_channel, name=name + "down_dense")(H2)
     if layer_scale_init_value > 0:
         H2 = ChannelAffine(use_bias=False, weight_init_value=layer_scale_init_value, name=name + "gamma")(H2)
     H2 = drop_block(nn, drop_rate=drop_rate, name=name)
-    return keras.layers.Add(name=name + "output")([inputs, H2])
+    H3 = keras.layers.Add()([inputs, H2])
+    H3 = layer_norm(H3, epsilon=LAYER_NORM_EPSILON, name=name)
+    return keras.layers.Add(name=name + "output")(H3)
 
 
 def ConvNeXt(
