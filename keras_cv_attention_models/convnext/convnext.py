@@ -30,7 +30,7 @@ PRETRAINED_DICT = {
 def block(inputs, output_channel, layer_scale_init_value=1e-6, drop_rate=0, activation="gelu", name=""):
     nn = depthwise_conv2d_no_bias(inputs, kernel_size=7, padding="SAME", use_bias=True, name=name)
     nn = layer_norm(nn, epsilon=LAYER_NORM_EPSILON, name=name)
-    H1 = keras.layers.Dense(4 * output_channel, name=name + "up_dense")(nn)
+    H1 = keras.layers.Dense(5 * output_channel, name=name + "up_dense")(nn)
     H1 = activation_by_name(H1, activation, name=name)
     H2 = keras.layers.Add()([nn, H1])
     H2 = layer_norm(H2, epsilon=LAYER_NORM_EPSILON, name=name)
